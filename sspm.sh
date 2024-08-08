@@ -72,16 +72,16 @@ is_installed() {
             pacman -Q "$package_name" &> /dev/null
             ;;
         aur)
-            aur list_installed | grep -q "$package_name"
+            aur list_installed | grep -q "^$package_name "
             ;;
         apt)
-            dpkg -l | grep -q "$package_name"
+            dpkg -l | grep -q "^ii\s\+$package_name\s"
             ;;
         xbps)
-            xbps-query -l | grep -q "$package_name"
+            xbps-query -l | grep -q "^ii\s\+$package_name\s"
             ;;
         dnf)
-            dnf list installed | grep -q "$package_name"
+            dnf list installed "$package_name" &> /dev/null
             ;;
     esac
     return $?
