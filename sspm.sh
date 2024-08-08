@@ -5,6 +5,38 @@ display_help() {
     echo "ESC: quit | arrow up/down: navigate | enter: confirm install/uninstall selected package"
 }
 
+# Function to install dependencies
+install_dependencies() {
+    local dependencies=("fzf")
+    for dependency in "${dependencies[@]}"; do
+        if ! command -v $dependency &> /dev/null; then
+            read -p "$dependency is not installed. Do you want to install it? (Y/n) " confirm
+            if [[ "$confirm" =~ ^([yY][eE][sS]|[yY])$|^$ ]]; then
+                case "$PACKAGE_MANAGER" in
+                    pacman)
+                        sudo pacman -S $dependency
+                        ;;
+                    aur)
+                        aur install $dependency
+                        ;;
+                    apt)
+                        sudo apt install $dependency
+                        ;;
+                    xbps)
+                        sudo xbps-install $dependency
+                        ;;
+                    dnf)
+                        sudo dnf install $dependency
+                        ;;
+                esac
+            else
+                echo "Cannot proceed without $dependency. Exiting."
+                exit 1
+            fi
+        fi
+    done
+}
+
 # Function to search for packages
 search_packages() {
     local search_term="$1"
@@ -115,6 +147,9 @@ else
     exit 1
 fi
 
+# Install dependencies
+install_dependencies
+
 # Clear terminal and set up UI
 clear
 echo "sspm - Shit Simple Package Manager"
@@ -140,6 +175,7 @@ while true; do
             read -p "Package is already installed. Do you want to uninstall $package_name? (Y/n) " confirm
             if [[ "$confirm" =~ ^([yY][eE][sS]|[yY])$|^$ ]]; then
                 uninstall_package "$package_name"
+                echo "Package $package_name uninstalled."
             else
                 echo "Aborted."
             fi
@@ -147,6 +183,7 @@ while true; do
             read -p "Do you want to install $package_name? (Y/n) " confirm
             if [[ "$confirm" =~ ^([yY][eE][sS]|[yY])$|^$ ]]; then
                 install_package "$package_name"
+                echo "Package $package_name installed."
             else
                 echo "Aborted."
             fi
